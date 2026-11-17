@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkyNote · La météo du jour en une phrase</title>
+<meta name="description" content="SkyNote transforme la météo du jour en une phrase pleine de caractère, à poser sur ta photo et à partager en story. Gratuit sur l’App Store.">
+<meta name="apple-itunes-app" content="app-id=6819608338">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://grand.swiss/skynote/">
+<meta property="og:title" content="SkyNote · Today’s weather, in one line.">
+<meta property="og:description" content="Turn today’s weather into one cheeky line, on your photo or a plain colour. Free on the App Store.">
+<meta property="og:image" content="https://grand.swiss/skynote/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#F6F3EC">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23EDD78A'/%3E%3Cpath d='M17 42h4l-2 9 9-9h18a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 25.2 8.5 8.5 0 0 0 17 42z' fill='none' stroke='%231E1C29' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round' transform='translate(4.5 3.5) scale(.86)'/%3E%3C/svg%3E">
+<style>
+  /* Polices hébergées avec la page : aucune requête vers un service tiers. */
+  @font-face { font-family: 'Instrument Sans'; src: url('InstrumentSans_400Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Instrument Sans'; src: url('InstrumentSans_600SemiBold.ttf') format('truetype'); font-weight: 600; font-display: swap; }
+
+  /* Palette SkyNote (la page reste claire : c'est l'identité de l'app). */
+  :root {
+    color-scheme: light;
+    --ink: #1E1C29; --violet: #423F56; --cream: #F6F3EC; --white: #FFFFFF;
+    --brume: #C9C6D3; --flax: #EDD78A; --pluie: #8ECFDC; --chaleur: #E28868; --vent: #B27587;
+    --gutter: 16px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--cream); color: var(--ink);
+    font-family: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+    font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; }
+  a { color: var(--ink); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--gutter); }
+  .wrap.narrow { max-width: 760px; }
+  @media (min-width: 720px) { :root { --gutter: 32px; } }
+
+  /* En-tête */
+  .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 20px; padding-bottom: 8px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+  .brand .icon { width: 44px; height: 44px; border-radius: 11px; background: var(--flax); display: grid; place-items: center; flex: none; }
+  .brand-name { font-weight: 600; font-size: 26px; letter-spacing: -0.04em; }
+  .top-right { display: flex; align-items: center; gap: 18px; }
+  .links a { font-weight: 600; font-size: 15px; text-decoration: none; margin-left: 18px; }
+  .links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  @media (max-width: 640px) { .links { display: none; } }
+  nav.lang { display: flex; padding: 3px; border: 1.5px solid var(--ink); border-radius: 22px; }
+  nav.lang a {
+    min-width: 42px; height: 32px; padding: 0 9px; border-radius: 16px; display: grid; place-items: center;
+    font-weight: 600; font-size: 13px; letter-spacing: .04em; color: var(--ink); text-decoration: none;
+  }
+  nav.lang a[aria-current="true"] { background: var(--ink); color: var(--cream); }
+
+  /* Boutons pilules, comme dans l'app */
+  .pill {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 60px; padding: 0 28px;
+    border-radius: 30px; border: 1.5px solid var(--ink); font: 600 19px/1 'Instrument Sans', system-ui, sans-serif;
+    text-decoration: none; cursor: pointer; transition: transform .15s ease, opacity .15s ease;
+  }
+  .pill svg { width: 22px; height: 22px; flex: none; }
+  .pill:hover { transform: translateY(-1px); }
+  .pill:active { transform: translateY(1px); opacity: .85; }
+  .pill-ink { background: var(--ink); color: var(--cream); }
+  .pill-outline { background: transparent; color: var(--ink); height: 48px; font-size: 16px; padding: 0 20px; }
+  .pill-outline svg { width: 19px; height: 19px; }
+  .pill-flax { background: var(--flax); color: var(--ink); border-color: var(--flax); }
+  .pill:focus-visible, nav a:focus-visible, .links a:focus-visible { outline: 3px solid var(--vent); outline-offset: 3px; }
+
+  /* Hero */
+  .hero { padding: 40px 0 72px; overflow: hidden; }
+  .hero-grid { display: grid; gap: 48px; align-items: center; }
+  @media (min-width: 900px) { .hero { padding: 56px 0 96px; } .hero-grid { grid-template-columns: 1.25fr .75fr; } }
+  h1 { text-wrap: balance; font-weight: 600; font-size: clamp(44px, 7vw, 80px); line-height: .96; letter-spacing: -0.045em; margin: 0; }
+  .lead { font-size: clamp(18px, 2vw, 21px); line-height: 1.45; max-width: 30em; margin: 24px 0 32px; color: var(--violet); }
+  .cta-row { display: flex; align-items: center; flex-wrap: wrap; gap: 14px 20px; }
+  .note { font-weight: 600; font-size: 15px; color: var(--violet); }
+
+  /* Carte « story » vivante */
+  .stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 28px; }
+  .story, .ghost { width: min(300px, 68vw); aspect-ratio: 9 / 16; border-radius: 26px; }
+  .ghost { position: absolute; top: 0; box-shadow: 0 16px 40px rgba(30,28,41,.12); }
+  .ghost-a { background: var(--pluie); transform: translateX(-26%) rotate(-11deg) scale(.9); }
+  .ghost-b { background: var(--flax); transform: translateX(26%) rotate(10deg) scale(.9); }
+  .story {
+    position: relative; margin: 0; padding: 26px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;
+    background: var(--ink) center / cover no-repeat; color: var(--white); transform: rotate(-2deg);
+    box-shadow: 0 24px 60px rgba(30,28,41,.25); transition: background-color .35s ease, color .35s ease;
+  }
+  .story.photo::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(30,28,41,.6), rgba(30,28,41,0) 58%); }
+  .story > * { position: relative; }
+  .story-sig { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; opacity: .88; }
+  .story-sig svg { width: 21px; height: 21px; }
+  .story-picto { width: 54px; height: 54px; margin: 0 0 12px -6px; }
+  .story-text { font-weight: 600; font-size: clamp(27px, 7.4vw, 33px); line-height: 1; letter-spacing: -0.035em; }
+  .story.swap .story-text, .story.swap .story-picto { animation: rise .45s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .story.swap .story-text, .story.swap .story-picto { animation: none; }
+    .pill, .story { transition: none; }
+  }
+  .another { display: none; }
+  .js .another { display: inline-flex; }
+
+  /* Comment ça marche */
+  .section-title { font-weight: 600; font-size: clamp(34px, 5vw, 54px); line-height: 1; letter-spacing: -0.04em; margin: 0 0 32px; }
+  .steps { padding: 24px 0 88px; }
+  .step-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
+  @media (min-width: 820px) { .step-list { grid-template-columns: repeat(3, 1fr); } }
+  .step { border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; }
+  .step-text { padding: 28px 28px 8px; }
+  .step-num { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 17px; border: 1.5px solid currentColor; font-weight: 600; font-size: 15px; }
+  .step h3 { font-weight: 600; font-size: 27px; line-height: 1.05; letter-spacing: -0.03em; margin: 16px 0 10px; }
+  .step p { margin: 0; font-size: 16px; opacity: .85; }
+  .step img { display: block; width: min(86%, 300px); height: auto; margin: auto auto 0; padding-top: 20px; }
+
+  /* Promesse */
+  .promise { background: var(--ink); color: var(--cream); padding: 72px 0; }
+  .promise a { color: var(--cream); }
+  .promise .pill-flax { color: var(--ink); }
+  .promise-grid { display: grid; gap: 36px; align-items: end; }
+  @media (min-width: 860px) { .promise-grid { grid-template-columns: 1fr 1fr; } }
+  .promise-mark { width: 84px; height: 84px; margin-left: -10px; }
+  .promise h2 { font-weight: 600; font-size: clamp(52px, 8vw, 96px); line-height: .95; letter-spacing: -0.045em; margin: 16px 0 0; }
+  .promise-lead { font-size: 21px; line-height: 1.4; margin: 0 0 22px; }
+  .chips { list-style: none; padding: 0; margin: 0 0 30px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips li { height: 38px; padding: 0 15px; border-radius: 19px; border: 1.5px solid rgba(246,243,236,.35); display: inline-flex; align-items: center; font-weight: 600; font-size: 14px; }
+  .tag { margin: 22px 0 0; font-size: 16px; opacity: .85; }
+
+  /* Aide, confidentialité, impressum */
+  .info { padding: 80px 0 16px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: -12px 0 8px; padding: 0; list-style: none; }
+  .toc a {
+    display: inline-flex; align-items: center; height: 38px; padding: 0 14px; border-radius: 19px;
+    border: 1.5px solid var(--brume); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14px;
+  }
+  .toc a:hover { border-color: var(--ink); }
+  section.card { background: var(--white); border-radius: 24px; padding: 28px 24px; margin-top: 24px; scroll-margin-top: 16px; }
+  section.card h2 { font-weight: 600; font-size: 30px; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 16px; }
+  section.card h3 { font-weight: 600; font-size: 18px; margin: 24px 0 6px; }
+  section.card p, section.card ul { margin: 0 0 12px; }
+  section.card ul { padding-left: 20px; }
+  .muted { color: var(--violet); font-size: 15px; }
+  address { font-style: normal; }
+  footer { margin: 32px 0 48px; color: var(--violet); font-size: 14px; }
+
+  /* Une langue à la fois quand le script tourne ; sans script, tout reste visible. */
+  .js [data-lang] { display: none; }
+  .js [data-lang].active { display: revert; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="#" aria-label="SkyNote">
+      <span class="icon" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 64 64" fill="none" stroke="#1E1C29" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 42h4l-2 9 9-9h18a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 25.2 8.5 8.5 0 0 0 17 42z" transform="translate(-1.15 -2.45)"/></svg>
+      </span>
+      <span class="brand-name">SkyNote</span>
+    </a>
+    <div class="top-right">
+      <nav class="links" aria-label="Infos"><span data-lang="fr"><a href="#fr-support">Aide</a><a href="#fr-privacy">Confidentialité</a></span><span data-lang="en"><a href="#en-support">Help</a><a href="#en-privacy">Privacy</a></span><span data-lang="de"><a href="#de-support">Hilfe</a><a href="#de-privacy">Datenschutz</a></span></nav>
+      <nav class="lang" aria-label="Langue / Language / Sprache">
+        <a href="#fr" hreflang="fr" data-switch="fr">FR</a>
+        <a href="#en" hreflang="en" data-switch="en">EN</a>
+        <a href="#de" hreflang="de" data-switch="de">DE</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+  <!-- ===================== FR ===================== -->
+  <main data-lang="fr" lang="fr" id="fr">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-text">
+          <h1>La météo du jour, en une phrase.</h1>
+          <p class="lead">SkyNote transforme la météo de chez toi en une phrase pleine de caractère. Pose-la sur ta photo ou sur une couleur, puis partage-la en story.</p>
+          <div class="cta-row">
+            <a class="pill pill-ink" href="https://apps.apple.com/app/id6819608338"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Télécharger sur l’App Store</a>
+            <span class="note">Gratuit · iPhone</span>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="ghost ghost-a" aria-hidden="true"></div>
+          <div class="ghost ghost-b" aria-hidden="true"></div>
+          <figure class="story" data-story aria-label="Exemple d’image créée avec SkyNote">
+            <div class="story-sig" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 42h4l-2 9 9-9h18a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 25.2 8.5 8.5 0 0 0 17 42z"/></svg>SkyNote</div>
+            <svg class="story-picto" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+            <figcaption class="story-text"></figcaption>
+          </figure>
+          <button class="pill pill-outline another" type="button" data-another>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Autre phrase
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="steps">
+      <div class="wrap">
+        <h2 class="section-title">Trois gestes, une story.</h2>
+        <ol class="step-list">
+        <li class="step" style="background:var(--pluie);color:var(--ink)">
+          <div class="step-text"><span class="step-num">1</span><h3>Ta météo, en une phrase.</h3><p>L’app lit la météo de chez toi et choisit une phrase. Pas fan ? Une autre.</p></div>
+          <img src="img/fr-step1.png" width="564" height="1104" loading="lazy" alt="Écran de l’app SkyNote">
+        </li>
+        <li class="step" style="background:var(--ink);color:var(--cream)">
+          <div class="step-text"><span class="step-num">2</span><h3>Sur ta photo ou en couleur.</h3><p>Prends une photo, choisis-en une ou garde la couleur du jour. Règle le texte et sa place.</p></div>
+          <img src="img/fr-step2.png" width="564" height="1104" loading="lazy" alt="Écran de l’app SkyNote">
+        </li>
+        <li class="step" style="background:var(--brume);color:var(--ink)">
+          <div class="step-text"><span class="step-num">3</span><h3>Partage-la partout.</h3><p>Une image au format story, prête pour Instagram, WhatsApp ou Messages.</p></div>
+          <img src="img/fr-step3.png" width="564" height="1104" loading="lazy" alt="Écran de l’app SkyNote">
+        </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="promise">
+      <div class="wrap promise-grid">
+        <div>
+          <svg class="promise-mark" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 42h4l-2 9 9-9h18a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 25.2 8.5 8.5 0 0 0 17 42z"/></svg>
+          <h2>Gratuit.<br>Sans pub.<br>Sans compte.</h2>
+        </div>
+        <div class="promise-side">
+          <p class="promise-lead">Ta photo ne quitte jamais ton téléphone. Aucun pisteur, aucune donnée gardée chez nous.</p>
+          <ul class="chips"><li>180 phrases</li><li>Français · English · Deutsch</li><li>10 météos</li><li>Format story 9:16</li></ul>
+          <a class="pill pill-flax" href="https://apps.apple.com/app/id6819608338"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Télécharger sur l’App Store</a>
+          <p class="tag">Tague <a href="https://www.instagram.com/skynotemeteo/">@skynotemeteo</a> sur Instagram : on repartage les plus beaux ciels.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="info">
+      <div class="wrap narrow">
+        <h2 class="section-title">Aide et infos</h2>
+        <ul class="toc">
+      <li><a href="#fr-support">Aide</a></li>
+      <li><a href="#fr-privacy">Confidentialité</a></li>
+      <li><a href="#fr-impressum">Impressum</a></li>
+    </ul>
+
+        <section class="card" id="fr-support">
+      <h2>Aide</h2>
+      <h3>L’app ne trouve pas ma position</h3>
+      <p>Autorise la localisation dans <strong>Réglages → SkyNote → Position</strong> (« Lorsque l’app est active »). Sans position, tu peux choisir toi-même le temps qu’il fait : l’image n’affiche alors ni lieu ni température.</p>
+      <h3>Changer de langue</h3>
+      <p>Touche FR, EN ou DE en haut de l’écran d’accueil. Toute l’app change de langue, phrases comprises.</p>
+      <h3>Où vont mes photos ?</h3>
+      <p>Nulle part. L’image est assemblée sur ton téléphone ; elle ne quitte ton appareil que si tu la partages toi-même.</p>
+      <h3>Nous écrire</h3>
+      <p>Une question, une idée de phrase, un bug ? <a href="mailto:skynote@grand.swiss?subject=SkyNote">skynote@grand.swiss</a>. Indique si possible la version de l’app (écran « À propos »).</p>
+    </section>
+
+    <section class="card" id="fr-privacy">
+      <h2>Politique de confidentialité</h2>
+      <p class="muted">Dernière mise à jour : 2 octobre 2026</p>
+      <h3>En bref</h3>
+      <p>SkyNote ne demande aucun compte, n’affiche aucune publicité et n’utilise aucun outil de mesure d’audience ni de suivi. Nous ne collectons et ne conservons aucune donnée personnelle sur nos serveurs.</p>
+      <h3>Responsable</h3>
+      <address>Grand App Switzerland<br>Route de Châtel 500<br>1609 Le Jordil, Suisse<br><a href="mailto:skynote@grand.swiss">skynote@grand.swiss</a></address>
+      <h3>Position</h3>
+      <p>Si tu l’autorises, l’app lit la position de ton téléphone pour afficher la météo locale. Les coordonnées sont transmises au service météo Open-Meteo pour obtenir la prévision, et le nom de la ville est fourni par le service de localisation d’Apple. SkyNote n’enregistre pas ta position, sauf brièvement sur ton téléphone (la dernière météo est gardée 15 minutes). Si tu refuses, tu choisis la météo toi-même.</p>
+      <h3>Appareil photo et photos</h3>
+      <p>L’appareil photo et la photothèque ne sont utilisés que lorsque tu prends ou choisis une photo. L’image est créée sur ton téléphone et n’est jamais envoyée à nos serveurs. Pour l’enregistrer, l’app demande seulement le droit d’ajouter des photos.</p>
+      <h3>Partage</h3>
+      <p>Quand tu partages une image, c’est l’app que tu choisis (Instagram, WhatsApp, Messages…) qui la reçoit, selon ses propres règles.</p>
+      <h3>Données gardées sur ton téléphone</h3>
+      <p>La langue choisie et la dernière météo consultée. Elles sont supprimées si tu désinstalles l’app.</p>
+      <h3>Services tiers</h3>
+      <ul>
+        <li>Open-Meteo, prévisions météo : <a href="https://open-meteo.com/en/terms">conditions et confidentialité</a></li>
+        <li>Apple, localisation et nom des lieux : <a href="https://www.apple.com/legal/privacy/">politique de confidentialité d’Apple</a></li>
+      </ul>
+      <h3>Tes droits</h3>
+      <p>Selon la loi fédérale sur la protection des données (LPD) et, le cas échéant, le RGPD, tu peux nous écrire pour toute question sur tes données. Comme nous n’en conservons aucune, nous n’avons en principe rien à te communiquer ni à effacer.</p>
+      <h3>Changements</h3>
+      <p>Si cette politique change, la date ci-dessus sera mise à jour.</p>
+    </section>
+
+    <section class="card" id="fr-impressum">
+      <h2>Impressum</h2>
+      <h3>Éditeur</h3>
+      <address>Grand App Switzerland<br>Route de Châtel 500<br>1609 Le Jordil, Suisse<br><a href="mailto:skynote@grand.swiss">skynote@grand.swiss</a></address>
+      <h3>Données météo</h3>
+      <p>Les données météo proviennent d’<a href="https://open-meteo.com/">Open-Meteo.com</a>, sous licence <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Elles sont fournies à titre indicatif, sans garantie d’exactitude.</p>
+      <h3>Polices</h3>
+      <p>Instrument Sans, Instrument Serif et Space Mono, sous licence <a href="OFL.txt">SIL Open Font License</a>.</p>
+    </section>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== EN ===================== -->
+  <main data-lang="en" lang="en" id="en">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-text">
+          <h1>Today’s weather, in one line.</h1>
+          <p class="lead">SkyNote turns your local weather into one cheeky line. Put it on your photo or a plain colour, then share it to your story.</p>
+          <div class="cta-row">
+            <a class="pill pill-ink" href="https://apps.apple.com/app/id6819608338"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download on the App Store</a>
+            <span class="note">Free · iPhone</span>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="ghost ghost-a" aria-hidden="true"></div>
+          <div class="ghost ghost-b" aria-hidden="true"></div>
+          <figure class="story" data-story aria-label="Example of an image made with SkyNote">
+            <div class="story-sig" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 42h4l-2 9 9-9h18a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 25.2 8.5 8.5 0 0 0 17 42z"/></svg>SkyNote</div>
+            <svg class="story-picto" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+            <figcaption class="story-text"></figcaption>
+          </figure>
+          <button class="pill pill-outline another" type="button" data-another>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Another one
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="steps">
+      <div class="wrap">
+        <h2 class="section-title">Three taps, one story.</h2>
+        <ol class="step-list">
+        <li class="step" style="background:var(--pluie);color:var(--ink)">
+          <div class="step-text"><span class="step-num">1</span><h3>Your weather, in one line.</h3><p>The app reads your local weather and picks a line. Not feeling it? Get another.</p></div>
+          <img src="img/en-step1.png" width="564" height="1104" loading="lazy" alt="SkyNote app screen">
+        </li>
+        <li class="step" style="background:var(--ink);color:var(--cream)">
+          <div class="step-text"><span class="step-num">2</span><h3>On your photo or in colour.</h3><p>Take a photo, pick one, or keep the colour of the day. Adjust the text and where it sits.</p></div>
+          <img src="img/en-step2.png" width="564" height="1104" loading="lazy" alt="SkyNote app screen">
+        </li>
+        <li class="step" style="background:var(--brume);color:var(--ink)">
+          <div class="step-text"><span class="step-num">3</span><h3>Share it anywhere.</h3><p>A story-sized image, ready for Instagram, WhatsApp or Messages.</p></div>
+          <img src="img/en-step3.png" width="564" height="1104" loading="lazy" alt="SkyNote app screen">
+        </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="promise">
+      <div class="wrap promise-grid">
+        <div>
+          <svg class="promise-mark" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 42h4l-2 9 9-9h18a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 25.2 8.5 8.5 0 0 0 17 42z"/></svg>
+          <h2>Free.<br>No ads.<br>No account.</h2>
+        </div>
+        <div class="promise-side">
+          <p class="promise-lead">Your photo never leaves your phone. No trackers, no data kept on our side.</p>
+          <ul class="chips"><li>180 lines</li><li>Français · English · Deutsch</li><li>10 kinds of weather</li><li>9:16 story format</li></ul>
+          <a class="pill pill-flax" href="https://apps.apple.com/app/id6819608338"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download on the App Store</a>
+          <p class="tag">Tag <a href="https://www.instagram.com/skynotemeteo/">@skynotemeteo</a> on Instagram: we share the best skies.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="info">
+      <div class="wrap narrow">
+        <h2 class="section-title">Help and info</h2>
+        <ul class="toc">
+      <li><a href="#en-support">Help</a></li>
+      <li><a href="#en-privacy">Privacy</a></li>
+      <li><a href="#en-impressum">Legal notice</a></li>
+    </ul>
+
+        <section class="card" id="en-support">
+      <h2>Help</h2>
+      <h3>The app can’t find my location</h3>
+      <p>Allow location in <strong>Settings → SkyNote → Location</strong> (“While Using the App”). Without a location, you can pick the weather yourself: the image then shows neither place nor temperature.</p>
+      <h3>Change the language</h3>
+      <p>Tap FR, EN or DE at the top of the home screen. The whole app switches language, lines included.</p>
+      <h3>Where do my photos go?</h3>
+      <p>Nowhere. The image is put together on your phone; it only leaves your device if you share it yourself.</p>
+      <h3>Contact us</h3>
+      <p>A question, a line idea, a bug? <a href="mailto:skynote@grand.swiss?subject=SkyNote">skynote@grand.swiss</a>. If you can, include the app version (About screen).</p>
+    </section>
+
+    <section class="card" id="en-privacy">
+      <h2>Privacy policy</h2>
+      <p class="muted">Last updated: 2 October 2026</p>
+      <h3>In short</h3>
+      <p>SkyNote has no accounts, no ads and no analytics or tracking tools. We do not collect or store any personal data on our servers.</p>
+      <h3>Controller</h3>
+      <address>Grand App Switzerland<br>Route de Châtel 500<br>1609 Le Jordil, Switzerland<br><a href="mailto:skynote@grand.swiss">skynote@grand.swiss</a></address>
+      <h3>Location</h3>
+      <p>If you allow it, the app reads your phone’s location to show the local weather. The coordinates are sent to the Open-Meteo weather service to get the forecast, and the city name comes from Apple’s location service. SkyNote does not record your location, except briefly on your phone (the latest weather is kept for 15 minutes). If you decline, you pick the weather yourself.</p>
+      <h3>Camera and photos</h3>
+      <p>The camera and photo library are only used when you take or choose a photo. The image is created on your phone and is never sent to our servers. To save it, the app only asks for permission to add photos.</p>
+      <h3>Sharing</h3>
+      <p>When you share an image, the app you choose (Instagram, WhatsApp, Messages…) receives it, under its own rules.</p>
+      <h3>Data kept on your phone</h3>
+      <p>Your chosen language and the latest weather. Both are deleted if you uninstall the app.</p>
+      <h3>Third-party services</h3>
+      <ul>
+        <li>Open-Meteo, weather forecasts: <a href="https://open-meteo.com/en/terms">terms and privacy</a></li>
+        <li>Apple, location and place names: <a href="https://www.apple.com/legal/privacy/">Apple’s privacy policy</a></li>
+      </ul>
+      <h3>Your rights</h3>
+      <p>Under the Swiss Federal Act on Data Protection (FADP) and, where applicable, the GDPR, you can write to us with any question about your data. As we keep none, there is normally nothing for us to disclose or delete.</p>
+      <h3>Changes</h3>
+      <p>If this policy changes, the date above will be updated.</p>
+    </section>
+
+    <section class="card" id="en-impressum">
+      <h2>Legal notice</h2>
+      <h3>Publisher</h3>
+      <address>Grand App Switzerland<br>Route de Châtel 500<br>1609 Le Jordil, Switzerland<br><a href="mailto:skynote@grand.swiss">skynote@grand.swiss</a></address>
+      <h3>Weather data</h3>
+      <p>Weather data by <a href="https://open-meteo.com/">Open-Meteo.com</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Provided for information only, with no guarantee of accuracy.</p>
+      <h3>Fonts</h3>
+      <p>Instrument Sans, Instrument Serif and Space Mono, under the <a href="OFL.txt">SIL Open Font License</a>.</p>
+    </section>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== DE ===================== -->
+  <main data-lang="de" lang="de" id="de">
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-text">
+          <h1>Das Wetter von heute, in einem Satz.</h1>
+          <p class="lead">SkyNote macht aus deinem Wetter einen frechen Spruch. Leg ihn auf dein Foto oder eine Farbe und teil ihn in deiner Story.</p>
+          <div class="cta-row">
+            <a class="pill pill-ink" href="https://apps.apple.com/app/id6819608338"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Im App Store laden</a>
+            <span class="note">Gratis · iPhone</span>
+          </div>
+        </div>
+        <div class="stage">
+          <div class="ghost ghost-a" aria-hidden="true"></div>
+          <div class="ghost ghost-b" aria-hidden="true"></div>
+          <figure class="story" data-story aria-label="Beispielbild, erstellt mit SkyNote">
+            <div class="story-sig" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 42h4l-2 9 9-9h18a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 25.2 8.5 8.5 0 0 0 17 42z"/></svg>SkyNote</div>
+            <svg class="story-picto" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+            <figcaption class="story-text"></figcaption>
+          </figure>
+          <button class="pill pill-outline another" type="button" data-another>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Noch einer
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="steps">
+      <div class="wrap">
+        <h2 class="section-title">Drei Schritte, eine Story.</h2>
+        <ol class="step-list">
+        <li class="step" style="background:var(--pluie);color:var(--ink)">
+          <div class="step-text"><span class="step-num">1</span><h3>Dein Wetter, in einem Satz.</h3><p>Die App liest dein Wetter und wählt einen Spruch. Gefällt er nicht? Nimm einen anderen.</p></div>
+          <img src="img/de-step1.png" width="564" height="1104" loading="lazy" alt="Bildschirm der SkyNote-App">
+        </li>
+        <li class="step" style="background:var(--ink);color:var(--cream)">
+          <div class="step-text"><span class="step-num">2</span><h3>Auf deinem Foto oder in Farbe.</h3><p>Mach ein Foto, wähl eins aus oder nimm die Farbe des Tages. Pass Text und Position an.</p></div>
+          <img src="img/de-step2.png" width="564" height="1104" loading="lazy" alt="Bildschirm der SkyNote-App">
+        </li>
+        <li class="step" style="background:var(--brume);color:var(--ink)">
+          <div class="step-text"><span class="step-num">3</span><h3>Teil ihn überall.</h3><p>Ein Bild im Story-Format, bereit für Instagram, WhatsApp oder Nachrichten.</p></div>
+          <img src="img/de-step3.png" width="564" height="1104" loading="lazy" alt="Bildschirm der SkyNote-App">
+        </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="promise">
+      <div class="wrap promise-grid">
+        <div>
+          <svg class="promise-mark" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 42h4l-2 9 9-9h18a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 25.2 8.5 8.5 0 0 0 17 42z"/></svg>
+          <h2>Gratis.<br>Ohne Werbung.<br>Ohne Konto.</h2>
+        </div>
+        <div class="promise-side">
+          <p class="promise-lead">Dein Foto verlässt nie dein Handy. Keine Tracker, keine Daten bei uns.</p>
+          <ul class="chips"><li>180 Sprüche</li><li>Français · English · Deutsch</li><li>10 Wetterlagen</li><li>Story-Format 9:16</li></ul>
+          <a class="pill pill-flax" href="https://apps.apple.com/app/id6819608338"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Im App Store laden</a>
+          <p class="tag">Markiere <a href="https://www.instagram.com/skynotemeteo/">@skynotemeteo</a> auf Instagram: Wir teilen die schönsten Himmel.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="info">
+      <div class="wrap narrow">
+        <h2 class="section-title">Hilfe und Infos</h2>
+        <ul class="toc">
+      <li><a href="#de-support">Hilfe</a></li>
+      <li><a href="#de-privacy">Datenschutz</a></li>
+      <li><a href="#de-impressum">Impressum</a></li>
+    </ul>
+
+        <section class="card" id="de-support">
+      <h2>Hilfe</h2>
+      <h3>Die App findet meinen Standort nicht</h3>
+      <p>Erlaube den Standort unter <strong>Einstellungen → SkyNote → Standort</strong> („Beim Verwenden der App“). Ohne Standort kannst du das Wetter selbst wählen: Das Bild zeigt dann weder Ort noch Temperatur.</p>
+      <h3>Sprache ändern</h3>
+      <p>Tippe oben auf dem Startbildschirm auf FR, EN oder DE. Die ganze App wechselt die Sprache, Sprüche inklusive.</p>
+      <h3>Wohin gehen meine Fotos?</h3>
+      <p>Nirgendwohin. Das Bild entsteht auf deinem Handy und verlässt es nur, wenn du es selbst teilst.</p>
+      <h3>Schreib uns</h3>
+      <p>Eine Frage, eine Spruch-Idee, ein Fehler? <a href="mailto:skynote@grand.swiss?subject=SkyNote">skynote@grand.swiss</a>. Gib wenn möglich die App-Version an (Bildschirm „Über die App“).</p>
+    </section>
+
+    <section class="card" id="de-privacy">
+      <h2>Datenschutzerklärung</h2>
+      <p class="muted">Zuletzt aktualisiert: 2. Oktober 2026</p>
+      <h3>Kurz gesagt</h3>
+      <p>SkyNote braucht kein Konto, zeigt keine Werbung und nutzt keine Analyse- oder Tracking-Tools. Wir erheben und speichern keine Personendaten auf unseren Servern.</p>
+      <h3>Verantwortlich</h3>
+      <address>Grand App Switzerland<br>Route de Châtel 500<br>1609 Le Jordil, Schweiz<br><a href="mailto:skynote@grand.swiss">skynote@grand.swiss</a></address>
+      <h3>Standort</h3>
+      <p>Wenn du es erlaubst, liest die App den Standort deines Handys, um das lokale Wetter anzuzeigen. Die Koordinaten werden an den Wetterdienst Open-Meteo übermittelt, um die Vorhersage abzurufen; den Ortsnamen liefert der Ortungsdienst von Apple. SkyNote speichert deinen Standort nicht, ausser kurz auf deinem Handy (das letzte Wetter bleibt 15 Minuten erhalten). Wenn du ablehnst, wählst du das Wetter selbst.</p>
+      <h3>Kamera und Fotos</h3>
+      <p>Kamera und Fotomediathek werden nur genutzt, wenn du ein Foto aufnimmst oder auswählst. Das Bild entsteht auf deinem Handy und wird nie an unsere Server gesendet. Zum Speichern fragt die App nur die Erlaubnis, Fotos hinzuzufügen.</p>
+      <h3>Teilen</h3>
+      <p>Wenn du ein Bild teilst, erhält es die App deiner Wahl (Instagram, WhatsApp, Nachrichten…) nach deren eigenen Regeln.</p>
+      <h3>Daten auf deinem Handy</h3>
+      <p>Die gewählte Sprache und das zuletzt abgerufene Wetter. Beides wird gelöscht, wenn du die App deinstallierst.</p>
+      <h3>Dienste Dritter</h3>
+      <ul>
+        <li>Open-Meteo, Wettervorhersagen: <a href="https://open-meteo.com/en/terms">Bedingungen und Datenschutz</a></li>
+        <li>Apple, Standort und Ortsnamen: <a href="https://www.apple.com/legal/privacy/">Datenschutzrichtlinie von Apple</a></li>
+      </ul>
+      <h3>Deine Rechte</h3>
+      <p>Nach dem Schweizer Datenschutzgesetz (DSG) und gegebenenfalls der DSGVO kannst du uns zu deinen Daten jederzeit schreiben. Da wir keine speichern, gibt es in der Regel nichts mitzuteilen oder zu löschen.</p>
+      <h3>Änderungen</h3>
+      <p>Ändert sich diese Erklärung, wird das Datum oben angepasst.</p>
+    </section>
+
+    <section class="card" id="de-impressum">
+      <h2>Impressum</h2>
+      <h3>Anbieter</h3>
+      <address>Grand App Switzerland<br>Route de Châtel 500<br>1609 Le Jordil, Schweiz<br><a href="mailto:skynote@grand.swiss">skynote@grand.swiss</a></address>
+      <h3>Wetterdaten</h3>
+      <p>Wetterdaten von <a href="https://open-meteo.com/">Open-Meteo.com</a>, lizenziert unter <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Ohne Gewähr für Richtigkeit.</p>
+      <h3>Schriften</h3>
+      <p>Instrument Sans, Instrument Serif und Space Mono, unter der <a href="OFL.txt">SIL Open Font License</a>.</p>
+    </section>
+      </div>
+    </section>
+  </main>
+
+<div class="wrap narrow">
+  <footer>© 2026 Grand App Switzerland · <a href="mailto:skynote@grand.swiss">skynote@grand.swiss</a> · <a href="https://www.instagram.com/skynotemeteo/">Instagram @skynotemeteo</a></footer>
+</div>
+
+<script>
+  (function () {
+    var langs = ['fr', 'en', 'de'];
+    document.documentElement.classList.add('js');
+
+    // Pictos de l'app (grille 64).
+    var PICTOS = {
+      pluie: '<path d="M17 38h29a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 21.2 8.5 8.5 0 0 0 17 38z"/><path d="M24 45l-3 7M33 45l-3 7M42 45l-3 7"/>',
+      orage: '<path d="M22 38h-5a8.5 8.5 0 0 1 2-16.8A14 14 0 0 1 45.4 18h.6a10 10 0 0 1 0 20h-4"/><path d="M34 32l-7 12h9l-7 12"/>',
+      soleil: '<circle cx="32" cy="32" r="10"/><path d="M32 6v8M32 50v8M6 32h8M50 32h8M13.6 13.6l5.7 5.7M44.7 44.7l5.7 5.7M13.6 50.4l5.7-5.7M44.7 19.3l5.7-5.7"/>',
+      nuageux: '<path d="M17 46h29a10 10 0 0 0 0-20h-.6A14 14 0 0 0 19 29.2 8.5 8.5 0 0 0 17 46z"/>',
+      chaleur: '<path d="M24 40V14a4 4 0 0 1 8 0v26a8 8 0 1 1-8 0z"/><path d="M28 22v20"/><path d="M42 18c2.5 2.5 2.5 5 0 7.5s-2.5 5 0 7.5M50 18c2.5 2.5 2.5 5 0 7.5s-2.5 5 0 7.5"/>',
+      neige: '<path d="M32 8v48M11.2 20l41.6 24M11.2 44l41.6-24"/><path d="M26 12l6 6 6-6M26 52l6-6 6 6M11 27l8.2-2.2L17 16.6M53 37l-8.2 2.2 2.2 8.2M11 37l8.2 2.2-2.2 8.2M53 27l-8.2-2.2 2.2-8.2"/>',
+      nuit: '<path d="M38 10a22 22 0 1 0 16 34A18 18 0 0 1 38 10z"/>'
+    };
+
+    // Exemples de cartes : photo (img/) ou aplat de la condition, phrases du catalogue de l'app.
+    var CARDS = [
+      { code: 'pluie', photo: 'img/photo-pluie-velo.jpg', fr: 'Il pleut.|Évidemment.', en: 'Raining.|Obviously.', de: 'Es regnet.|Natürlich.' },
+      { code: 'orage', bg: '#423F56', fg: '#EDD78A', fr: 'Orage dehors.|Goûter dedans.', en: 'Storm outside.|Snacks inside.', de: 'Draußen Gewitter.|Drinnen Snacks.' },
+      { code: 'soleil', photo: 'img/photo-soleil-lac.jpg', fr: 'Le ciel a fait|un effort.', en: 'The sky is|showing off.', de: 'Der Himmel|gibt sich Mühe.' },
+      { code: 'nuageux', photo: 'img/photo-nuages-automne.jpg', fr: 'Gris.|Comme un lundi.', en: 'Grey.|Like a Monday.', de: 'Grau.|Wie ein Montag.' },
+      { code: 'chaleur', bg: '#E28868', fg: '#1E1C29', fr: 'Mode lézard :|activé.', en: 'Lizard mode:|on.', de: 'Eidechsen-Modus:|an.' },
+      { code: 'neige', photo: 'img/photo-neige-froid.jpg', fr: 'Neige.|Chocolat chaud. Fin.', en: 'Snow.|Hot chocolate. Done.', de: 'Schnee.|Kakao. Fertig.' },
+      { code: 'nuit', photo: 'img/photo-nuit-granderoue.jpg', fr: 'Bonne nuit,|la ville.', en: 'Good night,|city.', de: 'Gute Nacht,|Stadt.' }
+    ];
+    var index = 0;
+
+    function render(lang, animate) {
+      var c = CARDS[index];
+      document.querySelectorAll('main[data-lang="' + lang + '"] [data-story]').forEach(function (el) {
+        el.classList.toggle('photo', !!c.photo);
+        el.style.backgroundImage = c.photo ? 'url(' + c.photo + ')' : 'none';
+        el.style.backgroundColor = c.photo ? '#1E1C29' : c.bg;
+        el.style.color = c.photo ? '#FFFFFF' : c.fg;
+        el.querySelector('.story-picto').innerHTML = PICTOS[c.code];
+        el.querySelector('.story-text').innerHTML = c[lang].split('|').join('<br>');
+        el.classList.remove('swap');
+        if (animate) { void el.offsetWidth; el.classList.add('swap'); }
+      });
+    }
+
+    function pick() {
+      var fromHash = (location.hash.match(/^#(fr|en|de)/) || [])[1];
+      var fromNav = (navigator.language || 'fr').slice(0, 2);
+      return fromHash || (langs.indexOf(fromNav) >= 0 ? fromNav : 'en');
+    }
+    var current = null;
+    function show(lang) {
+      current = lang;
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-lang]').forEach(function (el) {
+        el.classList.toggle('active', el.getAttribute('data-lang') === lang);
+      });
+      document.querySelectorAll('[data-switch]').forEach(function (a) {
+        a.setAttribute('aria-current', a.getAttribute('data-switch') === lang ? 'true' : 'false');
+      });
+      render(lang, false);
+    }
+    function sync() {
+      show(pick());
+      var target = location.hash && document.querySelector(location.hash);
+      if (target && location.hash.length > 3) target.scrollIntoView();
+    }
+
+    document.querySelectorAll('[data-another]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        index = (index + 1) % CARDS.length;
+        render(current, true);
+      });
+    });
+    // Précharge les photos pour que le changement de carte soit instantané.
+    CARDS.forEach(function (c) { if (c.photo) { var i = new Image(); i.src = c.photo; } });
+
+    window.addEventListener('hashchange', sync);
+    sync();
+  })();
+</script>
+</body>
+</html>
